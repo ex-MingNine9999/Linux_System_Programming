@@ -1,0 +1,7 @@
+STD_DIR/20190014/12.c:21:1: warning: control reaches end of non-void function [-Wreturn-type]
+}
+^
+STD_DIR/20190014/12.c:37:1: warning: control reaches end of non-void function [-Wreturn-type]
+}
+^
+2 warnings generated.

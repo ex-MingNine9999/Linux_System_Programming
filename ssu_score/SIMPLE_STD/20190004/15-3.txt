@@ -1,0 +1,1 @@
+dirp -= (opendir(argv[1])) || chdir (argv[1]) == -1

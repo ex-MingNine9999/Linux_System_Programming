@@ -1,0 +1,10 @@
+write to standard output
+before fork
+
+pid = 2120, glob_val = 11, loc_val = 101
+2120's runtime
+Runtime: 0:000574(sec:usec)
+
+pid = 2119, glob_val = 10, loc_val = 100
+2119's runtime
+Runtime: 3:001085(sec:usec)

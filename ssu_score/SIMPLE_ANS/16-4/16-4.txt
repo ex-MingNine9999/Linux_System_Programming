@@ -1,0 +1,1 @@
+statbuf.st_mode ^= (S_IXGRP|S_IXOTH)

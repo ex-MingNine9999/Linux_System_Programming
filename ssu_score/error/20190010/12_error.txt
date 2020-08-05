@@ -1,0 +1,19 @@
+STD_DIR/20190010/12.c:28:1: warning: control reaches end of non-void function [-Wreturn-type]
+}
+^
+STD_DIR/20190010/12.c:31:6: error: use of undeclared identifier 'i'
+        for(i = 1; i <= 300; i++) {
+            ^
+STD_DIR/20190010/12.c:31:13: error: use of undeclared identifier 'i'
+        for(i = 1; i <= 300; i++) {
+                   ^
+STD_DIR/20190010/12.c:31:23: error: use of undeclared identifier 'i'
+        for(i = 1; i <= 300; i++) {
+                             ^
+STD_DIR/20190010/12.c:37:3: error: use of undeclared identifier 'sum'
+                sum += buf[--length];
+                ^
+STD_DIR/20190010/12.c:43:17: error: use of undeclared identifier 'sum'
+        printf("%d\n", sum);
+                       ^
+1 warning and 5 errors generated.

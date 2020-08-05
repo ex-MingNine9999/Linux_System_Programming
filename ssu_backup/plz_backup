@@ -1,0 +1,525 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <dirent.h>
+#include <pthread.h>
+#include <time.h>
+#include "ssu_runtime.h"
+#include "ssu_backup.h"
+
+char backupDIR[PATH_MAX];
+FILE *logFp;
+dList *backupList;
+
+int main(int argc, char *argv[])
+{
+	gettimeofday(&begin_t, NULL);
+
+	initializing(argc, argv);
+
+	prompt();
+
+	gettimeofday(&end_t, NULL);
+	ssu_runtime(&begin_t, &end_t);
+
+	exit(0);
+}
+
+int initializing(int argc, char *argv[])
+{
+	char buf[BUF_SIZ];
+	int ret = 0;
+	struct stat statbuf;
+
+	if (argc > 2) {
+		ret = -1;
+	}
+	else if (argc == 1) {
+		strcpy(backupDIR, BACKUP_NAME);
+		mkdir(backupDIR, 0777);
+	}
+	else {
+		stat(argv[1], &statbuf);
+		if (!(S_ISDIR(statbuf.st_mode))) {
+			ret = -1;
+		}
+
+		if (!(statbuf.st_mode & S_IXUSR)) {
+			ret = -1;
+		}
+
+		if (ret == 0) {
+			sprintf(backupDIR, "%s/%s", argv[1], BACKUP_NAME);
+			mkdir(backupDIR, 0777);
+		}
+	}
+
+	if (ret < 0) {
+		fprintf(stderr, "usage : %s <DIRECTORY>\n", argv[0]);
+		exit(1);
+	}
+
+	sprintf(buf, "%s/%s", backupDIR, LOG_NAME);
+	if ((logFp = fopen(buf, "w")) == NULL) {
+		fprintf(stderr, "fopen error for %s\n", LOG_NAME);
+		exit(1);
+	}
+
+	backupList = (dList *)malloc(sizeof(dList));
+	list_init(backupList);
+
+	return ret;
+}
+
+void prompt(void)
+{
+	char com[BUF_SIZ];
+
+	while (1) {
+		memset(com, 0, BUF_SIZ);
+
+		printf("%s ", PROMPT);
+		fgets(com, BUF_SIZ - 1, stdin);
+
+		com[strlen(com) - 1] = 0;				// 개행 제거
+
+		if (strncmp(com, "add", 3) == 0) {
+			comAdd(com + 4);
+		}
+		else if (strncmp(com, "remove", 6) == 0) {
+			comRemove(com + 7);
+		}
+		else if (strncmp(com, "compare", 7) == 0) {
+			comCompare(com + 8);
+		}
+		else if (strncmp(com, "recover", 7) == 0) {
+			comRecover(com + 8);
+		}
+		else if (strncmp(com, "list", 4) == 0) {
+			comList();
+		}
+		else if (strncmp(com, "exit", 4) == 0) {
+			return;
+		}
+		else {
+			system(com);
+		}
+	}
+
+}
+
+long long getNowTime()
+{
+	long long ret;
+	time_t ttt;
+	struct tm now;
+	char buf[BUF_SIZ];
+
+	time(&ttt);
+	now = *localtime(&ttt);
+
+	sprintf(buf, "%02d%02d%02d%02d%02d%02d", 
+			now.tm_year%100, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
+
+	ret = atoll(buf);
+
+	return ret;
+}
+
+void getAbsolPath(char *fname)
+{
+	char temp[PATH_MAX];	
+	int i, j;
+	int cnt = 0, check = 0;
+
+	getcwd(temp, PATH_MAX);
+
+	if (fname[0] == '.') {
+		for (i = 0; strncmp(fname + i, "../", 3) == 0; i += 3) {
+			cnt++;
+		}
+		if (cnt == 0) {
+			while (fname[i] != '/') {
+				i++;
+			}
+			i++;
+
+			strcat(temp, "/");
+		}
+		else {
+			for (j = strlen(temp) - 1; j >= 0; j--) {
+				if (temp[j] == '/') {
+					check++;
+				}
+
+				if (check == cnt) {
+					break;
+				}
+			}
+			temp[j + 1] = 0;
+		}
+
+		strcat(temp, fname + i);
+		strcpy(fname, temp);
+	}
+	else if (fname[0] == '~') {
+		for (i = 0; fname[i] != '/'; i++)
+			;
+
+		for (j = 0; check < ROOT_HOME; j++) {
+			if (temp[j] == '/') {
+				check++;
+			}
+		}
+		temp[j] = 0;
+
+		strcat(temp, fname + i + 1);
+		strcpy(fname, temp);
+	}
+	else if (fname[0] == '/') {
+		return;
+	}
+	else {
+		strcat(temp, "/");
+		strcat(temp, fname);
+		strcpy(fname, temp);
+		return;
+	}
+}
+
+char *getFileName(char *path, char *fname)
+{
+	char *cp;
+
+	if ((cp = strrchr(path, '/')) == NULL) {
+		strcpy(fname, path);
+	}
+	else {
+		strcpy(fname, cp + 1);
+	}
+
+	return fname;
+}
+
+long long getBackupPath(char *fname)
+{
+	char buf[PATH_MAX];
+	long long ret = getNowTime();
+
+	strcpy(buf, fname);
+	sprintf(fname, "%s/%s_%lld", backupDIR, buf, ret);
+
+	return ret;
+}
+
+void comAdd(char *com)
+{
+	node tmpNode;
+	char buf[BUF_SIZ];
+	char *cp = com;
+	int checkUsage = 0;
+	struct stat statbuf;
+
+	memset((void *)&tmpNode, 0, sizeof(node));
+
+	while (*cp == ' ') cp++;
+
+	if ((cp = strtok(cp, " ")) == NULL) {
+		checkUsage = 1;	
+	}
+	else {
+		while (*cp == ' ') cp++;
+
+		if (access(cp, F_OK) < 0) {
+			checkUsage = 1;
+		}
+
+		if (checkUsage == 0) {
+			stat(cp, &statbuf);
+
+			if (S_ISREG(statbuf.st_mode) || S_ISDIR(statbuf.st_mode)) {
+				strcpy(tmpNode.filename, cp);
+				getAbsolPath(tmpNode.filename);
+
+				if (list_search(backupList, tmpNode.filename) != NULL) {
+					checkUsage = 2;
+				}
+			}
+			else {
+				checkUsage = 1;
+			}
+		}
+	}
+
+	if ((cp = strtok(NULL, " ")) == NULL) {
+		checkUsage = 1;
+	}
+	else {
+		while (*cp == ' ') cp++;
+
+		tmpNode.period = atoi(cp);
+	}
+
+	if (checkUsage) {
+		fprintf(stderr, "usage : add <FILENAME> <PERIOD> <OPTIONS>...\n");
+		if (checkUsage == 2) {
+			fprintf(stderr, "%s is already added the list\n", tmpNode.filename);
+		}
+
+		return;
+	}
+
+	while ((cp = strtok(NULL, " \n")) != NULL) {
+		while (*cp == ' ') cp++;
+
+		if (cp[0] == '-') {
+			switch (cp[1]) {
+				case 'm' :
+					tmpNode.opt[OPT_M] = 1;
+					break;
+				case 'n' :
+					tmpNode.opt[OPT_N] = 1;
+					if ((cp = strtok(NULL, " \n")) == NULL || *cp == '-') {
+						fprintf(stderr, "add -n option usage : -n <NUMBER>\n");
+						return;
+					}
+					else {
+						while (*cp == ' ') cp++;
+
+						strcpy(tmpNode.optarg[OPT_N], cp);
+					}
+					break;
+				case 't' :
+					tmpNode.opt[OPT_T] = 1;
+					if ((cp = strtok(NULL, " \n")) == NULL || *cp == '-') {
+						fprintf(stderr, "add -t option usage : -t <TIME>\n");
+						return;
+					}
+					else {
+						while (*cp == ' ') cp++;
+
+						strcpy(tmpNode.optarg[OPT_T], cp);
+					}
+					break;
+				case 'd' :
+					tmpNode.opt[OPT_D] = 1;
+					break;
+				default :
+					fprintf(stderr, "A %s is unknown option\n", cp);
+					return;
+			}
+		}
+		else {
+			fprintf(stderr, "A %s is not an option\n", cp);
+			return;
+		}
+	}
+
+	list_pushBack(backupList, tmpNode);
+
+	/*if (backupFile(backupList->tail->filename, NULL, B_BACKUP) < 0) {
+		fprintf(stderr, "backupFile error\n");
+		return;
+	}*/
+}
+
+void comRemove(char *com)
+{
+	char *cp;
+
+	if ((cp = strtok(com, " \n")) == NULL) {
+		fprintf(stderr, "remove usage : remove <FILENAME> <OPTION>\n");
+		return;
+	}
+	else {
+		if (strcmp(cp, "-a") == 0) {
+			list_deleteAll(backupList);
+		}
+		else {
+			getAbsolPath(cp);
+
+			if (list_delete(backupList, cp) < 0) {
+				fprintf(stderr, "Not found %s\n", cp);
+				return;
+			}
+		}
+	}
+}
+
+void comCompare(char *com)
+{
+	char *cp = com;
+	char fname1[PATH_MAX], fname2[PATH_MAX];
+	int checkUsage = 0;
+	struct stat statbuf1, statbuf2;
+
+	while (*cp == ' ') cp++;
+
+	if ((cp = strtok(cp, " \n")) == NULL) {
+		checkUsage = 1;
+	}
+	else {
+		strcpy(fname1, cp);
+	}
+	if ((cp = strtok(NULL, " \n")) == NULL) {
+		checkUsage = 1;
+	}
+	else {
+		strcpy(fname2, cp);
+	}
+
+	if (checkUsage) {
+		fprintf(stderr, "usage : compare <FILENAME1> <FILENAME2>\n");
+		return;
+	}
+
+	stat(fname1, &statbuf1);
+	stat(fname2, &statbuf2);
+
+	if (statbuf1.st_size == statbuf2.st_size &&
+			statbuf1.st_mtime == statbuf2.st_mtime) {
+		printf("%s and %s are same file. (%s == %s) \n", fname1, fname2, fname1, fname2);
+	}
+	else {
+		printf("%s and %s are different file. (%s != %s) \n", fname1, fname2, fname1, fname2);
+		printf("%s's size : %lld\tmtime : %ld\n"
+				"%s's size : %lld\tmtime : %ld\n",
+				fname1, statbuf1.st_size, statbuf1.st_mtime,
+				fname2, statbuf2.st_size, statbuf2.st_mtime);
+	}
+
+}
+
+void comRecover(char *com)
+{
+	char *cp = com;
+	char old_f[PATH_MAX], new_f[PATH_MAX] = {0};
+	int check = 0;
+
+	while (*cp == ' ') cp++;
+
+	if ((cp = strtok(cp, " ")) == NULL) {
+		fprintf(stderr, "usage : recover <FILENAME> <OPTION>\n");
+		return;
+	}
+	else {
+		while (*cp == ' ') cp++;
+
+		strcpy(old_f, cp);
+		getAbsolPath(old_f);
+	}
+
+	if ((cp = strtok(NULL, " \n")) != NULL) {
+		while (*cp == ' ') cp++;
+
+		if (cp[0] == '-') {
+			if (cp[1] == 'n') {
+				if ((cp = strtok(NULL, " \n")) == NULL) {
+					fprintf(stderr, "recover -n option usage : -n <NEWFILE>\n");
+
+					return;
+				}
+				else {
+					while (*cp == ' ') cp++;
+
+					strcpy(new_f, cp);
+					check = -1;
+				}
+			}
+		}
+		else {
+			fprintf(stderr, " A %s is not an option\n", cp);
+			return;
+		}
+	}
+
+	if (check == 0) {
+		strcpy(new_f, old_f);
+	}
+
+	list_search(backupList, old_f);
+	strcpy(old_f, backupList->cur->last);
+
+	backupFile(old_f, new_f, B_RECOVER);
+}
+
+void comList()
+{
+	list_print(backupList);
+}
+
+int copyFile(char *path, char *newPath)
+{
+	char buf[BUF_SIZ * 3];
+	int orgFd, backFd;
+	int len, mode;
+	struct stat statbuf;
+
+	stat(path, &statbuf);
+	mode = statbuf.st_mode & 0777;
+
+	if ((orgFd = open(path, O_RDONLY)) < 0) {
+		fprintf(stderr, "origin open error for %s\n", path);
+		return -1;
+	}
+	if ((backFd = open(newPath, O_WRONLY | O_CREAT | O_TRUNC, mode)) < 0) {
+		fprintf(stderr, "backup open error for %s\n", newPath);
+		return -1;
+	}
+
+	while ((len = read(orgFd, buf, BUF_SIZ * 3 - 1)) > 0) {
+		write(backFd, buf, len);
+	}
+
+	close(orgFd);
+	close(backFd);
+
+	return 0;
+}
+
+int backupFile(char *path, char *newPath, int mode)
+{
+	long long t;
+
+	switch (mode) {
+		case B_BACKUP :
+			newPath = (char *)calloc(PATH_MAX, sizeof(char));
+			list_search(backupList, path);
+			t = getBackupPath(getFileName(path, newPath));
+			break;
+		case B_RECOVER:
+			t = getNowTime();
+			break;
+		default :
+			fprintf(stderr, "unknown mode\n");
+			return -1;
+	}
+
+	if (copyFile(path, newPath) < 0) {
+		fprintf(stderr, "copy error for %s\n", path);
+		return -1;
+	}
+
+	switch (mode) {
+		case B_BACKUP :
+			fprintf(logFp, LOG_FORMAT "_%lld generated\n", t / 1000000, t % 1000000, path, t);
+
+			strcpy(backupList->cur->last, newPath);
+
+			free(newPath);
+			break;
+		case B_RECOVER :
+			fprintf(logFp, LOG_FORMAT " recovered\n", t / 1000000, t % 1000000, newPath);
+			break;
+		default :
+			fprintf(stderr, "unknown mode\n");
+			return -1;
+	}
+
+	return 0;
+}

@@ -1,0 +1,9 @@
+STD_DIR/20190002/11.c:34:3: warning: switch condition has boolean value [-Wswitch-bool]
+                switch (sigismember(&sigset, SIGUSR1))
+                ^       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+STD_DIR/20190002/11.c:49:3: warning: switch condition has boolean value [-Wswitch-bool]
+                switch (sigismember(&sigset, SIGUSR1))
+                ^       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2 warnings generated.
+sh: 2: command not found
+sh: line 1: .error: command not found

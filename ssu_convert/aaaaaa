@@ -1,0 +1,9 @@
+q2: q2.o Stack.o
+	gcc q2.o Stack.o -o q2
+
+q2.o: q2.c
+	gcc q2.c -c
+
+Stack.o: Stack.c
+	gcc Stack.c -c
+

@@ -1,0 +1,15 @@
+STD_DIR/20190020/12.c:31:1: warning: control reaches end of non-void function [-Wreturn-type]
+}
+^
+STD_DIR/20190020/12.c:42:7: warning: array index 99 is past the end of the array (which contains 10 elements) [-Warray-bounds]
+                        if(buf[99]==300)
+                           ^   ~~
+STD_DIR/20190020/12.c:10:1: note: array 'buf' declared here
+int buf[10];
+^
+STD_DIR/20190020/12.c:51:1: warning: control reaches end of non-void function [-Wreturn-type]
+}
+^
+3 warnings generated.
+sh: 3: command not found
+sh: line 1: .error: command not found

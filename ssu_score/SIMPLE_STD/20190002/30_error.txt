@@ -1,0 +1,4 @@
+SIMPLE_STD/20190002/30.c:5:20: warning: data argument not used by format string [-Wformat-extra-args]
+        printf("oslab\n", "hi");
+               ~~~~~~~~~  ^
+1 warning generated.

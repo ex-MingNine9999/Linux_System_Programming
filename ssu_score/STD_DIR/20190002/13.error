@@ -1,0 +1,9 @@
+STD_DIR/20190002/13.c:12:18: error: variable has incomplete type 'struct sigacion'
+        struct sigacion sig_act;
+                        ^
+STD_DIR/20190002/13.c:12:9: note: forward declaration of 'struct sigacion'
+        struct sigacion sig_act;
+               ^
+1 error generated.
+sh: 1: command not found
+sh: line 1: /13.error: No such file or directory

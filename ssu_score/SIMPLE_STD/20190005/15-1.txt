@@ -1,0 +1,1 @@
+(pathname = (char *)malloc(pathmax + 1)) == NULL

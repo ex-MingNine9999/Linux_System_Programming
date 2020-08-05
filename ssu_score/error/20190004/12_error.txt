@@ -1,0 +1,6 @@
+STD_DIR/20190004/12.c:70:1: error: expected '}'
+^
+STD_DIR/20190004/12.c:57:1: note: to match this '{'
+{
+^
+1 error generated.

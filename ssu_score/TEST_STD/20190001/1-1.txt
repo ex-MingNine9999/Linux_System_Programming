@@ -1,0 +1,1 @@
+fread (&pirate, sizeof(struct ssu_pirate), 1, fp1) != 1

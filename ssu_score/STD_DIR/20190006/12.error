@@ -1,0 +1,24 @@
+STD_DIR/20190006/12.c:18:25: error: use of undeclared identifier 'cond2'; did you mean 'cond1'?
+                        pthread_cond_signal(&cond2);
+                                             ^~~~~
+                                             cond1
+STD_DIR/20190006/12.c:7:16: note: 'cond1' declared here
+pthread_cond_t cond1 = PTHREAD_COND_INITIALIZER;
+               ^
+STD_DIR/20190006/12.c:32:23: error: use of undeclared identifier 'cond2'; did you mean 'cond1'?
+                        pthread_cond_wait(&cond2,&mutex);
+                                           ^~~~~
+                                           cond1
+STD_DIR/20190006/12.c:7:16: note: 'cond1' declared here
+pthread_cond_t cond1 = PTHREAD_COND_INITIALIZER;
+               ^
+STD_DIR/20190006/12.c:50:24: error: use of undeclared identifier 'cond2'; did you mean 'cond1'?
+        pthread_cond_destroy(&cond2);
+                              ^~~~~
+                              cond1
+STD_DIR/20190006/12.c:7:16: note: 'cond1' declared here
+pthread_cond_t cond1 = PTHREAD_COND_INITIALIZER;
+               ^
+3 errors generated.
+sh: 3: command not found
+sh: line 1: 12.error: command not found

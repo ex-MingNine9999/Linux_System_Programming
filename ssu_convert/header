@@ -1,0 +1,8 @@
+printf #include <stdio.h>
+scanf #include <stdio.h>
+open #include<sys/types.h> #include <sys/stat.h> #include<fcntl.h>
+write #include <unistd.h>
+fsync #include <unistd.h>
+close #include <unistd.h>
+calloc #include <stdlib.h>
+exit #include <stdlib.h>

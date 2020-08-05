@@ -1,0 +1,8 @@
+#include <duggy.h>
+
+int duggy(void)
+{
+	printf("Hello duggy!");
+
+	return 0;
+}

@@ -1,0 +1,4 @@
+q1: q1.o 
+	gcc q1.o -o q1
+q1.o : q1.c
+	gcc q1.c -c

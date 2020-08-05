@@ -1,0 +1,13 @@
+STD_DIR/20190009/11.c:6:31: error: expected ';' after expression
+        printf("SIGUSR1 catched!!\n")
+                                     ^
+                                     ;
+STD_DIR/20190009/11.c:20:7: warning: implicit declaration of function 'getpid' is invalid in C99 [-Wimplicit-function-declaration]
+        kill(getpid(),SIGUSR1);
+             ^
+STD_DIR/20190009/11.c:23:10: warning: implicit declaration of function 'fork' is invalid in C99 [-Wimplicit-function-declaration]
+        if((pid=fork()) < 0){
+                ^
+2 warnings and 1 error generated.
+sh: 2: command not found
+sh: line 1: IR/20190009/11.stdexe: No such file or directory

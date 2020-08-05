@@ -1,0 +1,10 @@
+STD_DIR/20190003/11.c:15:18: error: use of undeclared identifier 'ssu_signal'; did you mean 'bsd_signal'?
+        signal(SIGUSR1, ssu_signal);
+                        ^~~~~~~~~~
+                        bsd_signal
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/usr/include/signal.h:79:19: note: 'bsd_signal' declared here
+void    (* _Nullable bsd_signal(int, void (* _Nullable)(int)))(int);
+                     ^
+1 error generated.
+sh: 1: command not found
+sh: line 1: /11.error: No such file or directory

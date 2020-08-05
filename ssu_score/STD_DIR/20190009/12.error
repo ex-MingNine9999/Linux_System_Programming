@@ -1,0 +1,9 @@
+STD_DIR/20190009/12.c:26:1: warning: control reaches end of non-void function [-Wreturn-type]
+}
+^
+STD_DIR/20190009/12.c:46:1: warning: control reaches end of non-void function [-Wreturn-type]
+}
+^
+2 warnings generated.
+sh: 2: command not found
+sh: line 1: .error: command not found

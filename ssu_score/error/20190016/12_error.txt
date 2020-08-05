@@ -1,0 +1,11 @@
+STD_DIR/20190016/12.c:30:1: warning: control reaches end of non-void function [-Wreturn-type]
+}
+^
+STD_DIR/20190016/12.c:36:38: error: use of undeclared identifier 'ssu_thread_consumer'; did you mean 'ssu_thread_producer'?
+        pthread_create(&consumer_tid, NULL, ssu_thread_consumer, NULL);
+                                            ^~~~~~~~~~~~~~~~~~~
+                                            ssu_thread_producer
+STD_DIR/20190016/12.c:13:7: note: 'ssu_thread_producer' declared here
+void *ssu_thread_producer(void *arg){
+      ^
+1 warning and 1 error generated.

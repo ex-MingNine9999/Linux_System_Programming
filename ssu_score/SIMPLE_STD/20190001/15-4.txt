@@ -1,0 +1,1 @@
+read(fd, (int *)&record, sizeof(record))>0

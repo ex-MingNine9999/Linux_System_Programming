@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <signal.h>
+#include <setjmp.h>
+#include "ssu_runtime.h"
+
+void ssu_signal_handler(int signo);
+
+jmp_buf jump_buffer;
+
+int main(void)
+{
+	gettimeofday(&begin_t, NULL);
+
+	signal(SIGINT, ssu_signal_handler);
+
+	while (1) {
+		if (setjmp(jump_buffer) == 0) {
+			printf("Hit Ctrl-c at anytime ....\n");
+			pause();
+		}
+	}	
+
+	gettimeofday(&end_t, NULL);
+	ssu_runtime(&begin_t, &end_t);
+
+	exit(0);
+}
+
+void ssu_signal_handler(int signo)
+{
+	char character;
+
+	signal(signo, SIG_IGN);
+	printf("Did you hit Ctrl-c?\n"
+			"Do yo really want to quit? [y/n] ");
+
+	character = getchar();
+	getchar();
+
+	if (character == 'y' || character == 'Y') {
+		exit(0);
+	}
+	else {
+		signal(SIGINT, ssu_signal_handler);
+		longjmp(jump_buffer, 1);
+	}
+}

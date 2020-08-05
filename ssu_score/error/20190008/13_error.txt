@@ -1,0 +1,5 @@
+STD_DIR/20190008/13.c:6:35: error: expected ';' after top level declarator
+void ssu_signal_handler(int signo)
+                                  ^
+                                  ;
+1 error generated.
