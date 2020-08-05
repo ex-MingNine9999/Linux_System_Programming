@@ -1,5 +1,7 @@
 # 19년도 1학기 리눅스 시스템 프로그래밍 수업 기본 과제 및 설계
 
+*밑에 설계(Project)들을 제외한 나머지 과제들은 전부 해당 함수를 테스트해보는 과제*
+
 
 
 ## 설계 1번 : SSU_SCORE
@@ -16,7 +18,7 @@
   - 프로그램 실행이 너무 오래 지속되거나 무한루프로 끝나지 않는 것을 방지하기 위한 5초 제한이 존재
   - 위 문제를 fork()와 쓰레드 사용을 배우기 전 이여서 프로그램 실행전 timeover.c 코드 생성, 컴파일(killer 생성) 실행하여 프로그램을 제어
 
-
+https://github.com/MingNine9999/Linux_System_Programming/tree/master/ssu_score
 
 
 
@@ -28,7 +30,7 @@
 - 중괄호{} 및 if, for, while 사용에 따른 indent가 제대로 적용되도록 설계
 - java의 클래스 정의부는 C에서는 구조체와 그에 관한 함수들이라고 생각하여 해당 부분에 대한 헤더파일을 따로 만들도록 설계
 
-
+https://github.com/MingNine9999/Linux_System_Programming/tree/master/ssu_convert
 
 
 
@@ -42,3 +44,4 @@
 - 폴더 옵션을 추가하면 하위 파일들과 폴더 까지도 전부 백업하도록 설계
 - 현재 백업중인 파일들을 볼 수 있도록 설계
 
+https://github.com/MingNine9999/Linux_System_Programming/tree/master/ssu_backup
